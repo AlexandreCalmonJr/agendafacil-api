@@ -40,6 +40,8 @@ A aplicação aceita as seguintes variáveis para conexão MySQL:
 
 Isso melhora a compatibilidade com provedores como Railway, que expõem as credenciais MySQL em variáveis como `MYSQL_HOST`.
 
+Se precisar depurar a configuração em produção, defina `DEBUG_DB_CONFIG=true` para exibir no log o host, usuário e se a senha foi carregada.
+
 ## Endpoints
 
 | Método | Endpoint | Descrição | Auth |

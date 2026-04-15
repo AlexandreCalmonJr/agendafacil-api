@@ -27,17 +27,20 @@ function getEnvVar(...keys) {
 function getDatabaseConfig() {
   const databaseUrl = getEnvVar(
     'DATABASE_URL',
+    'DATABASE_URI',
     'MYSQL_URL',
+    'MYSQLURI',
     'MYSQLURL',
     'MYSQL_PUBLIC_URL',
+    'MYSQL_PUBLIC_URI',
     'MYSQLPUBLIC_URL',
-    'MYSQLPUBLICURL'
+    'MYSQLPUBLICURI'
   );
   if (databaseUrl) {
     return parseDatabaseUrl(databaseUrl);
   }
 
-  return {
+  const config = {
     host: getEnvVar('DB_HOST', 'DBHOST', 'MYSQL_HOST', 'MYSQLHOST') || 'localhost',
     port: Number(getEnvVar('DB_PORT', 'DBPORT', 'MYSQL_PORT', 'MYSQLPORT') || 3306),
     user: getEnvVar(
@@ -45,8 +48,7 @@ function getDatabaseConfig() {
       'DBUSER',
       'MYSQL_USERNAME',
       'MYSQLUSER',
-      'MYSQL_USER',
-      'MYSQLUSER'
+      'MYSQL_USER'
     ) || 'root',
     password: getEnvVar(
       'DB_PASS',
@@ -58,6 +60,18 @@ function getDatabaseConfig() {
     ) || '',
     database: getEnvVar('DB_NAME', 'DBNAME', 'MYSQL_DATABASE', 'MYSQLDATABASE') || 'agendafacil'
   };
+
+  if (process.env.DEBUG_DB_CONFIG === 'true') {
+    console.log('🔧 Database config loaded:', {
+      host: config.host,
+      port: config.port,
+      user: config.user,
+      database: config.database,
+      passwordSet: Boolean(config.password)
+    });
+  }
+
+  return config;
 }
 
 function getDatabaseConnectionConfig(includeDatabase = true) {
