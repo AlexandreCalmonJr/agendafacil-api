@@ -24,6 +24,29 @@ function getEnvVar(...keys) {
   return undefined;
 }
 
+function debugDatabaseConfig(config, source) {
+  if (process.env.DEBUG_DB_CONFIG !== 'true') {
+    return;
+  }
+
+  console.log('🔧 DB CONFIG SOURCE:', source);
+  console.log('🔧 DB CONFIG:', {
+    host: config.host,
+    port: config.port,
+    user: config.user,
+    database: config.database,
+    passwordSet: Boolean(config.password)
+  });
+  console.log('🔧 DB ENV PRESENCE:', {
+    DATABASE_URL: Boolean(process.env.DATABASE_URL),
+    MYSQL_URL: Boolean(process.env.MYSQL_URL),
+    MYSQL_PUBLIC_URL: Boolean(process.env.MYSQL_PUBLIC_URL),
+    MYSQL_HOST: Boolean(process.env.MYSQL_HOST),
+    MYSQLUSER: Boolean(process.env.MYSQLUSER),
+    MYSQLPASSWORD: Boolean(process.env.MYSQLPASSWORD)
+  });
+}
+
 function getDatabaseConfig() {
   const databaseUrl = getEnvVar(
     'DATABASE_URL',
@@ -37,7 +60,9 @@ function getDatabaseConfig() {
     'MYSQLPUBLICURI'
   );
   if (databaseUrl) {
-    return parseDatabaseUrl(databaseUrl);
+    const config = parseDatabaseUrl(databaseUrl);
+    debugDatabaseConfig(config, 'URL');
+    return config;
   }
 
   const config = {
@@ -61,16 +86,7 @@ function getDatabaseConfig() {
     database: getEnvVar('DB_NAME', 'DBNAME', 'MYSQL_DATABASE', 'MYSQLDATABASE') || 'agendafacil'
   };
 
-  if (process.env.DEBUG_DB_CONFIG === 'true') {
-    console.log('🔧 Database config loaded:', {
-      host: config.host,
-      port: config.port,
-      user: config.user,
-      database: config.database,
-      passwordSet: Boolean(config.password)
-    });
-  }
-
+  debugDatabaseConfig(config, 'ENV');
   return config;
 }
 
