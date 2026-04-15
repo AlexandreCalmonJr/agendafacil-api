@@ -1,21 +1,18 @@
 const mysql = require('mysql2/promise');
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config();
+const { getDatabaseConfig, getDatabaseConnectionConfig } = require('./db-config');
 
 async function startAutoSetup() {
-  const dbName = process.env.DB_NAME || 'agendafacil';
-  const dbConfig = {
-    host: process.env.DB_HOST || 'localhost',
-    port: Number(process.env.DB_PORT) || 3306,
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASS || '',
-    multipleStatements: true
-  };
+  const dbConfig = getDatabaseConnectionConfig(false);
+  const dbName = getDatabaseConfig().database;
 
   let connection;
   try {
-    connection = await mysql.createConnection(dbConfig);
+    connection = await mysql.createConnection({
+      ...dbConfig,
+      multipleStatements: true
+    });
 
     await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
     await connection.query(`USE \`${dbName}\``);
@@ -41,7 +38,10 @@ async function startAutoSetup() {
       console.log('📦 Tabelas já existem no Banco de Dados. Nenhuma ação automática foi necessária.');
     }
   } catch (error) {
-    console.error('❌ Erro durante a configuração automática do Banco de Dados:', error.message);
+    console.error('❌ Erro durante a configuração automática do Banco de Dados:', error.code || error.message || error);
+    if (error.stack) {
+      console.error(error.stack);
+    }
     throw error;
   } finally {
     if (connection) {

@@ -19,7 +19,7 @@ npm install
 cp .env.example .env
 # Editar .env com suas credenciais do MySQL
 
-# Criar banco de dados
+# Criar banco de dados localmente
 mysql -u root -p < database/schema.sql
 mysql -u root -p < database/seed.sql
 
@@ -29,6 +29,16 @@ npm run dev
 # Rodar em produção
 npm start
 ```
+
+### Variáveis de ambiente suportadas
+
+A aplicação aceita as seguintes variáveis para conexão MySQL:
+
+- `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS`, `DB_NAME`
+- `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USERNAME`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`
+- `DATABASE_URL` ou `MYSQL_URL`
+
+Isso melhora a compatibilidade com provedores como Railway, que expõem as credenciais MySQL em variáveis como `MYSQL_HOST`.
 
 ## Endpoints
 

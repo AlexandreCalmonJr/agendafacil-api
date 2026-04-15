@@ -12,6 +12,9 @@ startAutoSetup()
     });
   })
   .catch(error => {
-    console.error('❌ Falha ao iniciar a API:', error.message);
+    console.error('❌ Falha ao iniciar a API:', error.code || error.message || error);
+    if (error.stack) {
+      console.error(error.stack);
+    }
     process.exit(1);
   });
