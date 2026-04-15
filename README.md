@@ -1,4 +1,4 @@
-# AgendaFácil API
+# Clínica Vita API
 
 API REST para sistema de agendamento de serviços em clínica.
 
@@ -36,7 +36,7 @@ A aplicação aceita as seguintes variáveis para conexão MySQL:
 
 - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS`, `DB_NAME`
 - `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USERNAME`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`
-- `DATABASE_URL` ou `MYSQL_URL`
+- `DATABASE_URL`, `MYSQL_URL` ou `MYSQL_PUBLIC_URL`
 
 Isso melhora a compatibilidade com provedores como Railway, que expõem as credenciais MySQL em variáveis como `MYSQL_HOST`.
 

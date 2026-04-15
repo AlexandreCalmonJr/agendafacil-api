@@ -1,5 +1,5 @@
 -- ============================================
--- AgendaFácil - Schema do Banco de Dados
+-- Clínica Vita - Schema do Banco de Dados
 -- ============================================
 
 CREATE DATABASE IF NOT EXISTS agendafacil;

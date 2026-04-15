@@ -7,7 +7,7 @@ startAutoSetup()
   .then(() => {
     const app = require('./src/app');
     app.listen(PORT, () => {
-      console.log(`🚀 Servidor AgendaFácil rodando na porta ${PORT}`);
+      console.log(`🚀 Servidor Clínica Vita rodando na porta ${PORT}`);
       console.log(`📋 API disponível em http://localhost:${PORT}`);
     });
   })

@@ -1,5 +1,5 @@
 -- ============================================
--- AgendaFácil - Dados de Exemplo (Seed)
+-- Clínica Vita - Dados de Exemplo (Seed)
 -- ============================================
 -- Senhas: todas são "123456" criptografadas com bcrypt
 

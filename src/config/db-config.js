@@ -25,7 +25,14 @@ function getEnvVar(...keys) {
 }
 
 function getDatabaseConfig() {
-  const databaseUrl = getEnvVar('DATABASE_URL', 'MYSQL_URL', 'MYSQLURL');
+  const databaseUrl = getEnvVar(
+    'DATABASE_URL',
+    'MYSQL_URL',
+    'MYSQLURL',
+    'MYSQL_PUBLIC_URL',
+    'MYSQLPUBLIC_URL',
+    'MYSQLPUBLICURL'
+  );
   if (databaseUrl) {
     return parseDatabaseUrl(databaseUrl);
   }
@@ -33,8 +40,22 @@ function getDatabaseConfig() {
   return {
     host: getEnvVar('DB_HOST', 'DBHOST', 'MYSQL_HOST', 'MYSQLHOST') || 'localhost',
     port: Number(getEnvVar('DB_PORT', 'DBPORT', 'MYSQL_PORT', 'MYSQLPORT') || 3306),
-    user: getEnvVar('DB_USER', 'DBUSER', 'MYSQL_USERNAME', 'MYSQLUSER', 'MYSQL_USER') || 'root',
-    password: getEnvVar('DB_PASS', 'DBPASS', 'MYSQL_PASSWORD', 'MYSQLPASSWORD', 'MYSQL_ROOT_PASSWORD') || '',
+    user: getEnvVar(
+      'DB_USER',
+      'DBUSER',
+      'MYSQL_USERNAME',
+      'MYSQLUSER',
+      'MYSQL_USER',
+      'MYSQLUSER'
+    ) || 'root',
+    password: getEnvVar(
+      'DB_PASS',
+      'DBPASS',
+      'MYSQL_PASSWORD',
+      'MYSQLPASSWORD',
+      'MYSQL_ROOT_PASSWORD',
+      'MYSQLROOTPASSWORD'
+    ) || '',
     database: getEnvVar('DB_NAME', 'DBNAME', 'MYSQL_DATABASE', 'MYSQLDATABASE') || 'agendafacil'
   };
 }

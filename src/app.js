@@ -29,7 +29,7 @@ app.use('/api/agendamentos', agendamentosRoutes);
 // Rota raiz
 app.get('/', (req, res) => {
   res.json({
-    mensagem: 'API AgendaFácil está rodando!',
+    mensagem: 'API Clínica Vita está rodando!',
     versao: '1.0.0',
     endpoints: {
       auth: '/api/login, /api/registro',
