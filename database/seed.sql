@@ -1,46 +1,47 @@
 -- ============================================
--- Clínica Vita - Dados de Exemplo (Seed)
+-- Clínica Vita - Seed de Dados (Versão Final Elite)
 -- ============================================
--- Senhas: todas são "123456" criptografadas com bcrypt
 
-USE agendafacil;
+-- Limpar dados existentes (em ordem reversa de FK)
+DELETE FROM prontuarios;
+DELETE FROM agendamentos;
+DELETE FROM clientes;
+DELETE FROM servicos;
+DELETE FROM profissionais;
+DELETE FROM usuarios;
 
--- Usuários (senha: 123456 => $2a$10$...)
-INSERT INTO usuarios (nome, email, senha, perfil, telefone) VALUES
-('Administrador', 'admin@agendafacil.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'admin', '(11) 99999-0000'),
-('Dra. Ana Silva', 'ana.silva@clinica.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'profissional', '(11) 98888-1111'),
-('Dr. Carlos Mendes', 'carlos.mendes@clinica.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'profissional', '(11) 97777-2222'),
-('Dra. Beatriz Oliveira', 'beatriz.oliveira@clinica.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'profissional', '(11) 96666-3333'),
-('Maria Santos', 'maria.santos@email.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'cliente', '(11) 95555-4444'),
-('João Pereira', 'joao.pereira@email.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'cliente', '(11) 94444-5555'),
-('Fernanda Lima', 'fernanda.lima@email.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'cliente', '(11) 93333-6666');
+-- 1. USUÁRIOS (Senha comum para todos: 123456)
+-- Hash: $2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2
+INSERT INTO usuarios (id, nome, email, senha, perfil, telefone) VALUES
+(1, 'Administrador Vita', 'admin@clinica.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'admin', '(11) 98888-8888'),
+(2, 'Dra. Ana Silva', 'ana.silva@clinica.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'profissional', '(11) 97777-7777'),
+(3, 'Dr. Roberto Santos', 'roberto.santos@clinica.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'profissional', '(11) 96666-6666'),
+(4, 'Maria Santos', 'maria.santos@email.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'cliente', '(11) 95555-5555');
 
--- Profissionais
-INSERT INTO profissionais (usuario_id, especialidade, descricao, registro_profissional) VALUES
-(2, 'Dermatologia', 'Especialista em dermatologia clínica e estética com 10 anos de experiência.', 'CRM 12345-SP'),
-(3, 'Nutrição', 'Nutricionista esportivo e clínico, especialista em reeducação alimentar.', 'CRN 67890-SP'),
-(4, 'Psicologia', 'Psicóloga clínica com abordagem cognitivo-comportamental.', 'CRP 11223-SP');
+-- 2. PROFISSIONAIS
+INSERT INTO profissionais (id, usuario_id, especialidade, descricao, registro_profissional) VALUES
+(1, 2, 'Clínica Geral / Medicina da Família', 'Especialista em cuidados preventivos e gestão de saúde longitudinal.', 'CRM-SP 123456'),
+(2, 3, 'Psiquiatria Clínica', 'Atendimento focado em transtornos de ansiedade e saúde mental moderna.', 'CRM-SP 654321');
 
--- Serviços
-INSERT INTO servicos (profissional_id, nome, descricao, duracao_minutos, preco) VALUES
-(1, 'Consulta Dermatológica', 'Avaliação completa da pele com orientações personalizadas.', 45, 250.00),
-(1, 'Limpeza de Pele', 'Procedimento de limpeza profunda com extração e hidratação.', 60, 180.00),
-(1, 'Peeling Químico', 'Tratamento para renovação celular e rejuvenescimento.', 30, 350.00),
-(2, 'Consulta Nutricional', 'Avaliação nutricional completa com plano alimentar.', 60, 200.00),
-(2, 'Retorno Nutricional', 'Acompanhamento e ajuste do plano alimentar.', 30, 120.00),
-(3, 'Sessão de Psicoterapia', 'Sessão individual de psicoterapia (50 minutos).', 50, 220.00),
-(3, 'Avaliação Psicológica', 'Avaliação psicológica completa com relatório.', 90, 400.00);
+-- 3. SERVIÇOS
+INSERT INTO servicos (id, profissional_id, nome, descricao, duracao_minutos, preco) VALUES
+(1, 1, 'Consulta Geral (Check-up)', 'Avaliação completa de saúde física e solicitação de exames de rotina.', 45, 250.00),
+(2, 1, 'Teleconsulta de Retorno', 'Acompanhamento online de tratamentos em curso.', 30, 150.00),
+(3, 2, 'Psicoterapia Individual', 'Sessão de terapia focada em autoconhecimento e saúde emocional.', 50, 350.00);
 
--- Clientes
-INSERT INTO clientes (usuario_id, data_nascimento, cpf, endereco) VALUES
-(5, '1990-05-15', '123.456.789-00', 'Rua das Flores, 123 - São Paulo/SP'),
-(6, '1985-10-20', '987.654.321-00', 'Av. Paulista, 1000 - São Paulo/SP'),
-(7, '1995-03-08', '456.789.123-00', 'Rua Augusta, 500 - São Paulo/SP');
+-- 4. CLIENTES
+INSERT INTO clientes (id, usuario_id, data_nascimento, cpf, endereco) VALUES
+(1, 4, '1990-05-15', '123.456.789-00', 'Rua das Flores, 123, São Paulo - SP');
 
--- Agendamentos
-INSERT INTO agendamentos (cliente_id, profissional_id, servico_id, data_hora, status, observacoes) VALUES
-(1, 1, 1, '2025-07-10 09:00:00', 'agendado', 'Primeira consulta - verificar manchas na pele'),
-(1, 2, 4, '2025-07-10 14:00:00', 'confirmado', 'Deseja reeducação alimentar para emagrecimento'),
-(2, 3, 6, '2025-07-11 10:00:00', 'agendado', 'Sessão de acompanhamento semanal'),
-(3, 1, 2, '2025-07-11 15:00:00', 'agendado', 'Limpeza de pele - pele oleosa'),
-(2, 2, 5, '2025-07-12 09:30:00', 'confirmado', 'Retorno - ajustar dieta');
+-- 5. AGENDAMENTOS (Passado, Hoje, Futuro)
+INSERT INTO agendamentos (id, cliente_id, profissional_id, servico_id, data_hora, modalidade, status, observacoes) VALUES
+-- Consulta passada (para teste de histórico)
+(1, 1, 1, 1, DATE_SUB(NOW(), INTERVAL 7 DAY), 'presencial', 'concluido', 'Paciente apresentava cansaço excessivo.'),
+-- Consulta de hoje (para teste de Dashboards)
+(2, 1, 1, 1, CONCAT(CURDATE(), ' 14:30:00'), 'presencial', 'agendado', 'Retorno para entrega de exames.'),
+-- Consulta futura (Teleconsulta)
+(3, 1, 1, 2, DATE_ADD(NOW(), INTERVAL 2 DAY), 'teleconsulta', 'confirmado', 'Monitoramento remoto.');
+
+-- 6. PRONTUÁRIOS (Referentes à consulta passada)
+INSERT INTO prontuarios (agendamento_id, notas_clinicas, prescricoes, exames) VALUES
+(1, 'Paciente relatou fadiga. Exame físico normal. Suspeita inicial de deficiência vitamínica.', '1. Vitamina D 50.000 UI - 1 gota por dia\n2. Melatonina 3mg antes de dormir.', '1. Hemograma Completo\n2. Dosagem de Vitamina D e B12\n3. Perfil Lipídico');

@@ -1,9 +1,6 @@
 -- ============================================
--- Clínica Vita - Schema do Banco de Dados
+-- Clínica Vita - Schema do Banco de Dados (Versão Final Elite)
 -- ============================================
-
-CREATE DATABASE IF NOT EXISTS agendafacil;
-USE agendafacil;
 
 -- Tabela de Usuários (autenticação e perfil)
 CREATE TABLE IF NOT EXISTS usuarios (
@@ -64,6 +61,9 @@ CREATE TABLE IF NOT EXISTS agendamentos (
   profissional_id INT NOT NULL,
   servico_id INT NOT NULL,
   data_hora DATETIME NOT NULL,
+  modalidade ENUM('presencial', 'teleconsulta') DEFAULT 'presencial',
+  link_telemedicina VARCHAR(255),
+  notificado BOOLEAN DEFAULT FALSE,
   status ENUM('agendado', 'confirmado', 'em_espera', 'em_atendimento', 'concluido', 'cancelado') NOT NULL DEFAULT 'agendado',
   observacoes TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -77,7 +77,6 @@ CREATE TABLE IF NOT EXISTS agendamentos (
 CREATE INDEX idx_agendamentos_data ON agendamentos(data_hora);
 CREATE INDEX idx_agendamentos_profissional ON agendamentos(profissional_id, data_hora);
 CREATE INDEX idx_agendamentos_cliente ON agendamentos(cliente_id, data_hora);
-CREATE INDEX idx_agendamentos_status ON agendamentos(status);
 
 -- Tabela de Prontuários (Sala de Atendimento)
 CREATE TABLE IF NOT EXISTS prontuarios (
