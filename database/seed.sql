@@ -7,13 +7,13 @@ USE agendafacil;
 
 -- Usuários (senha: 123456 => $2a$10$...)
 INSERT INTO usuarios (nome, email, senha, perfil, telefone) VALUES
-('Administrador', 'admin@agendafacil.com', '$2a$10$8K1p/a8RBQH6.FQzJ8H0OeJYpB3jVbKxFwWqvoEgP2pMK0QYlDHy6', 'admin', '(11) 99999-0000'),
-('Dra. Ana Silva', 'ana.silva@clinica.com', '$2a$10$8K1p/a8RBQH6.FQzJ8H0OeJYpB3jVbKxFwWqvoEgP2pMK0QYlDHy6', 'profissional', '(11) 98888-1111'),
-('Dr. Carlos Mendes', 'carlos.mendes@clinica.com', '$2a$10$8K1p/a8RBQH6.FQzJ8H0OeJYpB3jVbKxFwWqvoEgP2pMK0QYlDHy6', 'profissional', '(11) 97777-2222'),
-('Dra. Beatriz Oliveira', 'beatriz.oliveira@clinica.com', '$2a$10$8K1p/a8RBQH6.FQzJ8H0OeJYpB3jVbKxFwWqvoEgP2pMK0QYlDHy6', 'profissional', '(11) 96666-3333'),
-('Maria Santos', 'maria.santos@email.com', '$2a$10$8K1p/a8RBQH6.FQzJ8H0OeJYpB3jVbKxFwWqvoEgP2pMK0QYlDHy6', 'cliente', '(11) 95555-4444'),
-('João Pereira', 'joao.pereira@email.com', '$2a$10$8K1p/a8RBQH6.FQzJ8H0OeJYpB3jVbKxFwWqvoEgP2pMK0QYlDHy6', 'cliente', '(11) 94444-5555'),
-('Fernanda Lima', 'fernanda.lima@email.com', '$2a$10$8K1p/a8RBQH6.FQzJ8H0OeJYpB3jVbKxFwWqvoEgP2pMK0QYlDHy6', 'cliente', '(11) 93333-6666');
+('Administrador', 'admin@agendafacil.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'admin', '(11) 99999-0000'),
+('Dra. Ana Silva', 'ana.silva@clinica.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'profissional', '(11) 98888-1111'),
+('Dr. Carlos Mendes', 'carlos.mendes@clinica.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'profissional', '(11) 97777-2222'),
+('Dra. Beatriz Oliveira', 'beatriz.oliveira@clinica.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'profissional', '(11) 96666-3333'),
+('Maria Santos', 'maria.santos@email.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'cliente', '(11) 95555-4444'),
+('João Pereira', 'joao.pereira@email.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'cliente', '(11) 94444-5555'),
+('Fernanda Lima', 'fernanda.lima@email.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'cliente', '(11) 93333-6666');
 
 -- Profissionais
 INSERT INTO profissionais (usuario_id, especialidade, descricao, registro_profissional) VALUES

@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS agendamentos (
   profissional_id INT NOT NULL,
   servico_id INT NOT NULL,
   data_hora DATETIME NOT NULL,
-  status ENUM('agendado', 'confirmado', 'cancelado', 'concluido') NOT NULL DEFAULT 'agendado',
+  status ENUM('agendado', 'confirmado', 'em_espera', 'em_atendimento', 'concluido', 'cancelado') NOT NULL DEFAULT 'agendado',
   observacoes TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -78,3 +78,15 @@ CREATE INDEX idx_agendamentos_data ON agendamentos(data_hora);
 CREATE INDEX idx_agendamentos_profissional ON agendamentos(profissional_id, data_hora);
 CREATE INDEX idx_agendamentos_cliente ON agendamentos(cliente_id, data_hora);
 CREATE INDEX idx_agendamentos_status ON agendamentos(status);
+
+-- Tabela de Prontuários (Sala de Atendimento)
+CREATE TABLE IF NOT EXISTS prontuarios (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  agendamento_id INT NOT NULL UNIQUE,
+  notas_clinicas TEXT,
+  prescricoes TEXT,
+  exames TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (agendamento_id) REFERENCES agendamentos(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
