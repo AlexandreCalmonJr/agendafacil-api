@@ -9,6 +9,9 @@ router.get('/', verificarToken, verificarPerfil('admin', 'profissional'), client
 // GET /api/clientes/:id - Admin e Profissional
 router.get('/:id', verificarToken, verificarPerfil('admin', 'profissional'), clientesController.buscarPorId);
 
+// GET /api/clientes/meu-historico - Exclusivo para o cliente logado
+router.get('/meu-historico', verificarToken, verificarPerfil('cliente'), clientesController.buscarHistoricoSaude);
+
 // POST /api/clientes - Público (cadastro)
 router.post('/', clientesController.criar);
 

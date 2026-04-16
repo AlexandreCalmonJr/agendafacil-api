@@ -21,7 +21,10 @@ const listar = async (req, res) => {
         s.id as servico_id,
         s.nome as servico_nome,
         s.duracao_minutos,
-        s.preco
+        s.preco,
+        a.link_telemedicina,
+        a.notificado,
+        a.modalidade
       FROM agendamentos a
       JOIN clientes c ON a.cliente_id = c.id
       JOIN usuarios uc ON c.usuario_id = uc.id
@@ -151,8 +154,8 @@ const criar = async (req, res) => {
     }
 
     const [result] = await pool.query(
-      'INSERT INTO agendamentos (cliente_id, profissional_id, servico_id, data_hora, observacoes) VALUES (?, ?, ?, ?, ?)',
-      [cliente_id, profissional_id, servico_id, data_hora, observacoes || null]
+      'INSERT INTO agendamentos (cliente_id, profissional_id, servico_id, data_hora, observacoes, link_telemedicina, modalidade) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [cliente_id, profissional_id, servico_id, data_hora, observacoes || null, req.body.link_telemedicina || null, req.body.modalidade || 'presencial']
     );
 
     res.status(201).json({
@@ -191,6 +194,18 @@ const atualizar = async (req, res) => {
     if (observacoes !== undefined) {
       campos.push('observacoes = ?');
       valores.push(observacoes);
+    }
+    if (req.body.link_telemedicina !== undefined) {
+      campos.push('link_telemedicina = ?');
+      valores.push(req.body.link_telemedicina);
+    }
+    if (req.body.notificado !== undefined) {
+      campos.push('notificado = ?');
+      valores.push(req.body.notificado);
+    }
+    if (req.body.modalidade !== undefined) {
+      campos.push('modalidade = ?');
+      valores.push(req.body.modalidade);
     }
 
     if (campos.length === 0) {
@@ -233,4 +248,31 @@ const cancelar = async (req, res) => {
   }
 };
 
-module.exports = { listar, buscarPorId, criar, atualizar, cancelar };
+// GET /api/agendamentos/disponibilidade?data=...&profissional_id=...
+const verificarDisponibilidade = async (req, res) => {
+  try {
+    const { data, profissional_id } = req.query;
+
+    if (!data || !profissional_id) {
+      return res.status(400).json({ erro: 'Data e profissional_id são obrigatórios' });
+    }
+
+    const [rows] = await pool.query(`
+      SELECT 
+        DATE_FORMAT(data_hora, '%H:%i') as hora,
+        s.duracao_minutos
+      FROM agendamentos a
+      JOIN servicos s ON a.servico_id = s.id
+      WHERE a.profissional_id = ? 
+        AND DATE(a.data_hora) = ?
+        AND a.status IN ('agendado', 'confirmado')
+    `, [profissional_id, data]);
+
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro ao verificar disponibilidade:', err);
+    res.status(500).json({ erro: 'Erro interno do servidor' });
+  }
+};
+
+module.exports = { listar, buscarPorId, criar, atualizar, cancelar, verificarDisponibilidade };

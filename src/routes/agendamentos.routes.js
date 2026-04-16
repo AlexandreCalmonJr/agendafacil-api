@@ -4,6 +4,9 @@ const agendamentosController = require('../controllers/agendamentos.controller')
 const prontuariosController = require('../controllers/prontuarios.controller');
 const { verificarToken, verificarPerfil } = require('../middleware/auth.middleware');
 
+// GET /api/agendamentos/disponibilidade
+router.get('/disponibilidade', verificarToken, agendamentosController.verificarDisponibilidade);
+
 // GET /api/agendamentos - Usuário logado (filtrado por perfil)
 router.get('/', verificarToken, agendamentosController.listar);
 

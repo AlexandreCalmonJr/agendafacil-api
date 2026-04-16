@@ -96,4 +96,48 @@ const criar = async (req, res) => {
   }
 };
 
-module.exports = { listar, buscarPorId, criar };
+// GET /api/clientes/meu-historico?cliente_id=...
+const buscarHistoricoSaude = async (req, res) => {
+  try {
+    let targetClientId = req.usuario.cliente_id;
+
+    // Se o usuário for profissional ou admin, ele pode passar um cliente_id na query
+    if (['profissional', 'admin'].includes(req.usuario.perfil)) {
+      if (req.query.cliente_id) {
+        targetClientId = req.query.cliente_id;
+      } else if (req.usuario.perfil === 'profissional') {
+        return res.status(400).json({ erro: 'cliente_id é obrigatório para profissionais' });
+      }
+    }
+
+    if (!targetClientId) {
+      return res.status(403).json({ erro: 'Acesso negado' });
+    }
+
+    const [rows] = await pool.query(`
+      SELECT 
+        p.id,
+        p.notas_clinicas,
+        p.prescricoes,
+        p.exames,
+        p.created_at,
+        a.data_hora,
+        up.nome as profissional_nome,
+        s.nome as servico_nome
+      FROM prontuarios p
+      JOIN agendamentos a ON p.agendamento_id = a.id
+      JOIN profissionais prof ON a.profissional_id = prof.id
+      JOIN usuarios up ON prof.usuario_id = up.id
+      JOIN servicos s ON a.servico_id = s.id
+      WHERE a.cliente_id = ?
+      ORDER BY a.data_hora DESC
+    `, [targetClientId]);
+
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro ao buscar histórico de saúde:', err);
+    res.status(500).json({ erro: 'Erro interno do servidor' });
+  }
+};
+
+module.exports = { listar, buscarPorId, criar, buscarHistoricoSaude };
