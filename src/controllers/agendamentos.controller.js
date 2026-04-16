@@ -24,7 +24,10 @@ const listar = async (req, res) => {
         s.preco,
         a.link_telemedicina,
         a.notificado,
-        a.modalidade
+        a.modalidade,
+        a.pagamento_status,
+        a.valor_consulta,
+        a.sala
       FROM agendamentos a
       JOIN clientes c ON a.cliente_id = c.id
       JOIN usuarios uc ON c.usuario_id = uc.id
@@ -67,6 +70,7 @@ const listar = async (req, res) => {
       query += ' AND a.profissional_id = ?';
       params.push(req.usuario.profissional_id);
     }
+    // Admin e Recepcionista não possuem filtro extra (vêem tudo)
 
     query += ' ORDER BY a.data_hora ASC';
 
@@ -96,7 +100,12 @@ const buscarPorId = async (req, res) => {
         s.id as servico_id,
         s.nome as servico_nome,
         s.duracao_minutos,
-        s.preco
+        s.preco,
+        a.link_telemedicina,
+        a.modalidade,
+        a.pagamento_status,
+        a.valor_consulta,
+        a.sala
       FROM agendamentos a
       JOIN clientes c ON a.cliente_id = c.id
       JOIN usuarios uc ON c.usuario_id = uc.id

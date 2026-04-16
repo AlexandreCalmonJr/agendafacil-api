@@ -13,8 +13,8 @@ router.get('/', verificarToken, agendamentosController.listar);
 // GET /api/agendamentos/:id - Usuário logado
 router.get('/:id', verificarToken, agendamentosController.buscarPorId);
 
-// POST /api/agendamentos - Cliente ou Admin
-router.post('/', verificarToken, verificarPerfil('cliente', 'admin'), agendamentosController.criar);
+// POST /api/agendamentos - Cliente, Admin ou Recepcionista
+router.post('/', verificarToken, verificarPerfil('cliente', 'admin', 'recepcionista'), agendamentosController.criar);
 
 // PUT /api/agendamentos/:id - Usuário logado
 router.put('/:id', verificarToken, agendamentosController.atualizar);

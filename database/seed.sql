@@ -16,7 +16,8 @@ INSERT INTO usuarios (id, nome, email, senha, perfil, telefone) VALUES
 (1, 'Administrador Vita', 'admin@clinica.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'admin', '(11) 98888-8888'),
 (2, 'Dra. Ana Silva', 'ana.silva@clinica.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'profissional', '(11) 97777-7777'),
 (3, 'Dr. Roberto Santos', 'roberto.santos@clinica.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'profissional', '(11) 96666-6666'),
-(4, 'Maria Santos', 'maria.santos@email.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'cliente', '(11) 95555-5555');
+(4, 'Maria Santos', 'maria.santos@email.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'cliente', '(11) 95555-5555'),
+(5, 'Patrícia Staff', 'recepcao@clinica.com', '$2a$10$iEACMVHDdMP6OUQ1nLPm7uZkcYmA8DZDBQoPw63bhYPkPJro3r9j2', 'recepcionista', '(11) 94444-4444');
 
 -- 2. PROFISSIONAIS
 INSERT INTO profissionais (id, usuario_id, especialidade, descricao, registro_profissional) VALUES
@@ -34,13 +35,13 @@ INSERT INTO clientes (id, usuario_id, data_nascimento, cpf, endereco) VALUES
 (1, 4, '1990-05-15', '123.456.789-00', 'Rua das Flores, 123, São Paulo - SP');
 
 -- 5. AGENDAMENTOS (Passado, Hoje, Futuro)
-INSERT INTO agendamentos (id, cliente_id, profissional_id, servico_id, data_hora, modalidade, status, observacoes) VALUES
--- Consulta passada (para teste de histórico)
-(1, 1, 1, 1, DATE_SUB(NOW(), INTERVAL 7 DAY), 'presencial', 'concluido', 'Paciente apresentava cansaço excessivo.'),
--- Consulta de hoje (para teste de Dashboards)
-(2, 1, 1, 1, CONCAT(CURDATE(), ' 14:30:00'), 'presencial', 'agendado', 'Retorno para entrega de exames.'),
--- Consulta futura (Teleconsulta)
-(3, 1, 1, 2, DATE_ADD(NOW(), INTERVAL 2 DAY), 'teleconsulta', 'confirmado', 'Monitoramento remoto.');
+INSERT INTO agendamentos (id, cliente_id, profissional_id, servico_id, data_hora, modalidade, status, pagamento_status, valor_consulta, sala, observacoes) VALUES
+-- Consulta passada (concluída e paga)
+(1, 1, 1, 1, DATE_SUB(NOW(), INTERVAL 7 DAY), 'presencial', 'concluido', 'pago', 250.00, 'Sala 01', 'Paciente apresentava cansaço excessivo.'),
+-- Consulta de hoje (esperando na recepção)
+(2, 1, 1, 1, CONCAT(CURDATE(), ' 14:30:00'), 'presencial', 'em_espera', 'pendente', 250.00, 'Sala 02', 'Retorno para entrega de exames.'),
+-- Consulta futura (confirmada mas pendente)
+(3, 1, 1, 2, DATE_ADD(NOW(), INTERVAL 2 DAY), 'teleconsulta', 'confirmado', 'pendente', 150.00, 'VIRTUAL', 'Monitoramento remoto.');
 
 -- 6. PRONTUÁRIOS (Referentes à consulta passada)
 INSERT INTO prontuarios (agendamento_id, notas_clinicas, prescricoes, exames) VALUES

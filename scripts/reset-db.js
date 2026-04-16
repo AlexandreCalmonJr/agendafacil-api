@@ -51,6 +51,7 @@ async function resetDatabase() {
     console.log('Usuários de Teste:');
     console.log('- Médico: ana.silva@clinica.com / 123456');
     console.log('- Cliente: maria.santos@email.com / 123456');
+    console.log('- Recepção: recepcao@clinica.com / 123456');
     console.log('- Admin: admin@clinica.com / 123456');
     console.log('---------------------------------------------------------');
 

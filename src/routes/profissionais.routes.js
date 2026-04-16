@@ -9,7 +9,7 @@ router.get('/', profissionaisController.listar);
 // GET /api/profissionais/:id - Público
 router.get('/:id', profissionaisController.buscarPorId);
 
-// POST /api/profissionais - Apenas admin
-router.post('/', verificarToken, verificarPerfil('admin'), profissionaisController.criar);
+// POST /api/profissionais - Admin e Recepcionista
+router.post('/', verificarToken, verificarPerfil('admin', 'recepcionista'), profissionaisController.criar);
 
 module.exports = router;
