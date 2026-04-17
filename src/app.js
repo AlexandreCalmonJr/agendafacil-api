@@ -19,12 +19,14 @@ const profissionaisRoutes = require('./routes/profissionais.routes');
 const servicosRoutes = require('./routes/servicos.routes');
 const clientesRoutes = require('./routes/clientes.routes');
 const agendamentosRoutes = require('./routes/agendamentos.routes');
+const noticiasRoutes = require('./routes/noticias.routes');
 
 app.use('/api', authRoutes);
 app.use('/api/profissionais', profissionaisRoutes);
 app.use('/api/servicos', servicosRoutes);
 app.use('/api/clientes', clientesRoutes);
 app.use('/api/agendamentos', agendamentosRoutes);
+app.use('/api/noticias', noticiasRoutes);
 
 // Rota raiz
 app.get('/', (req, res) => {
@@ -36,7 +38,8 @@ app.get('/', (req, res) => {
       profissionais: '/api/profissionais',
       servicos: '/api/servicos',
       clientes: '/api/clientes',
-      agendamentos: '/api/agendamentos'
+      agendamentos: '/api/agendamentos',
+      noticias: '/api/noticias/saude, /api/noticias/clinica'
     }
   });
 });
