@@ -27,6 +27,7 @@ app.use('/api/servicos', servicosRoutes);
 app.use('/api/clientes', clientesRoutes);
 app.use('/api/agendamentos', agendamentosRoutes);
 app.use('/api/noticias', noticiasRoutes);
+app.use('/api/contato', require('./routes/contato.routes'));
 
 // Rota raiz
 app.get('/', (req, res) => {
