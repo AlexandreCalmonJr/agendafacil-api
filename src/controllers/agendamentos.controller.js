@@ -145,8 +145,8 @@ const criar = async (req, res) => {
     const inicio = new Date(data_hora);
     const fim = new Date(inicio.getTime() + duracao * 60000);
 
-    // Verificar conflito de horário
-    const [conflitos] = await pool.query(`
+    // Verificar conflito de horário para o PROFISSIONAL
+    const [conflitoProf] = await pool.query(`
       SELECT a.id, a.data_hora, s.duracao_minutos
       FROM agendamentos a
       JOIN servicos s ON a.servico_id = s.id
@@ -158,8 +158,25 @@ const criar = async (req, res) => {
         )
     `, [profissional_id, fim, inicio, inicio, fim]);
 
-    if (conflitos.length > 0) {
-      return res.status(409).json({ erro: 'Conflito de horário: o profissional já possui um agendamento neste período' });
+    if (conflitoProf.length > 0) {
+      return res.status(409).json({ erro: 'Conflito de horário: o profissional já possui um agendamento neste período.' });
+    }
+
+    // Verificar conflito de horário para o CLIENTE (paciente)
+    const [conflitoCliente] = await pool.query(`
+      SELECT a.id, a.data_hora, s.duracao_minutos
+      FROM agendamentos a
+      JOIN servicos s ON a.servico_id = s.id
+      WHERE a.cliente_id = ?
+        AND a.status IN ('agendado', 'confirmado')
+        AND (
+          (a.data_hora < ? AND DATE_ADD(a.data_hora, INTERVAL s.duracao_minutos MINUTE) > ?)
+          OR (a.data_hora >= ? AND a.data_hora < ?)
+        )
+    `, [cliente_id, fim, inicio, inicio, fim]);
+
+    if (conflitoCliente.length > 0) {
+      return res.status(409).json({ erro: 'Conflito de horário: o paciente já possui uma consulta agendada neste período.' });
     }
 
     const [result] = await pool.query(
@@ -268,16 +285,32 @@ const verificarDisponibilidade = async (req, res) => {
 
     const [rows] = await pool.query(`
       SELECT 
-        DATE_FORMAT(data_hora, '%H:%i') as hora,
+        a.data_hora,
         s.duracao_minutos
       FROM agendamentos a
       JOIN servicos s ON a.servico_id = s.id
       WHERE a.profissional_id = ? 
         AND DATE(a.data_hora) = ?
-        AND a.status IN ('agendado', 'confirmado')
+        AND a.status IN ('agendado', 'confirmado', 'em_espera', 'em_atendimento')
     `, [profissional_id, data]);
 
-    res.json(rows);
+    // Calcular todos os slots de 30min bloqueados por cada agendamento
+    const horasBloqueadas = new Set();
+    rows.forEach(row => {
+      const inicio = new Date(row.data_hora);
+      const duracao = row.duracao_minutos || 30;
+      // Bloquear todos os slots de 30 min que o serviço ocupa
+      for (let offset = 0; offset < duracao; offset += 30) {
+        const slot = new Date(inicio.getTime() + offset * 60000);
+        const h = String(slot.getHours()).padStart(2, '0');
+        const m = String(slot.getMinutes()).padStart(2, '0');
+        horasBloqueadas.add(`${h}:${m}`);
+      }
+    });
+
+    // Retornar como array de objetos { hora }
+    const resultado = Array.from(horasBloqueadas).map(h => ({ hora: h }));
+    res.json(resultado);
   } catch (err) {
     console.error('Erro ao verificar disponibilidade:', err);
     res.status(500).json({ erro: 'Erro interno do servidor' });
