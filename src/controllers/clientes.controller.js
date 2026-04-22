@@ -4,7 +4,9 @@ const bcrypt = require('bcryptjs');
 // GET /api/clientes
 const listar = async (req, res) => {
   try {
-    const [rows] = await pool.query(`
+    const { perfil, profissional_id } = req.usuario;
+
+    let query = `
       SELECT 
         c.id,
         c.data_nascimento,
@@ -16,8 +18,33 @@ const listar = async (req, res) => {
         u.ativo
       FROM clientes c
       JOIN usuarios u ON c.usuario_id = u.id
-      ORDER BY u.nome
-    `);
+    `;
+    const params = [];
+
+    if (perfil === 'profissional') {
+      // Doutor só enxerga seus próprios pacientes (que têm algum agendamento com ele)
+      query = `
+        SELECT DISTINCT
+          c.id,
+          c.data_nascimento,
+          c.cpf,
+          c.endereco,
+          u.nome,
+          u.email,
+          u.telefone,
+          u.ativo
+        FROM clientes c
+        JOIN usuarios u ON c.usuario_id = u.id
+        JOIN agendamentos a ON c.id = a.cliente_id
+        WHERE a.profissional_id = ?
+        ORDER BY u.nome
+      `;
+      params.push(profissional_id);
+    } else {
+      query += ` ORDER BY u.nome`;
+    }
+
+    const [rows] = await pool.query(query, params);
     res.json(rows);
   } catch (err) {
     console.error('Erro ao listar clientes:', err);
