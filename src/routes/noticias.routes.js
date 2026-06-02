@@ -2,14 +2,18 @@ const express = require('express');
 const router = express.Router();
 const https = require('https');
 
-// Função auxiliar para buscar dados HTTPS (Proxy)
-function fetchHttps(url) {
+function fetchHttps(url, timeoutMs = 10000) {
   return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
+    const req = https.get(url, { timeout: timeoutMs }, (res) => {
       let data = '';
       res.on('data', (chunk) => data += chunk);
       res.on('end', () => resolve(data));
-    }).on('error', (err) => reject(err));
+    });
+    req.on('error', (err) => reject(err));
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('Requisição HTTPS expirou'));
+    });
   });
 }
 

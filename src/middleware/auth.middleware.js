@@ -1,19 +1,32 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'agendafacil_secret_key_2025';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET não está definido nas variáveis de ambiente.');
+  process.exit(1);
+}
 
 // Middleware para verificar token JWT
 const verificarToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
+  let token = null;
 
-  if (!authHeader) {
-    return res.status(401).json({ erro: 'Token não fornecido' });
+  // Tentar ler do cookie httpOnly primeiro
+  if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
   }
 
-  const token = authHeader.startsWith('Bearer ')
-    ? authHeader.slice(7)
-    : authHeader;
+  // Fallback para Authorization header
+  if (!token) {
+    const authHeader = req.headers['authorization'];
+    if (authHeader) {
+      token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+    }
+  }
+
+  if (!token) {
+    return res.status(401).json({ erro: 'Token não fornecido' });
+  }
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);

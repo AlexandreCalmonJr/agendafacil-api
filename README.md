@@ -5,11 +5,11 @@
   <img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white" />
 </p>
 
-<h1 align="center">🏥 Clínica Vita — API REST</h1>
+<h1 align="center">Clínica Vita — API REST</h1>
 
 <p align="center">
-  <strong>Backend robusto para gestão completa de clínicas médicas</strong><br/>
-  Agendamento inteligente · Prontuários digitais · Controle financeiro · RBAC avançado
+  <strong>Infraestrutura de backend para gestão de clínicas médicas</strong><br/>
+  Agendamento dinâmico · Prontuários eletrônicos · Gestão financeira · Controle de acesso avançado
 </p>
 
 <p align="center">
@@ -21,46 +21,46 @@
 
 ---
 
-## ⚡ Quick Start
+## Início Rápido
 
 ```bash
-# 1. Instalar dependências
+# 1. Instalação de dependências
 npm install
 
-# 2. Configurar variáveis de ambiente
-cp .env.example .env     # Editar com suas credenciais MySQL
+# 2. Configuração de variáveis de ambiente
+cp .env.example .env     # Configure as credenciais do MySQL no arquivo .env
 
-# 3. Criar e popular o banco
+# 3. Inicialização da estrutura do banco de dados
 mysql -u root -p < database/schema.sql
 mysql -u root -p < database/seed.sql
 
-# 4. Iniciar
-npm run dev              # Desenvolvimento (nodemon)
-npm start                # Produção
+# 4. Execução do servidor
+npm run dev              # Modo desenvolvimento (nodemon)
+npm start                # Modo produção
 ```
 
-### 🔐 Variáveis de Ambiente
+### Configurações de Ambiente
 
-> Compatível com Railway, Render, Heroku e similares.
+A API é compatível com os principais provedores de infraestrutura como Railway, Render e Heroku.
 
 | Variável | Alternativa | Descrição |
 |:---------|:------------|:----------|
-| `DB_HOST` | `MYSQL_HOST` | Host do servidor MySQL |
-| `DB_PORT` | `MYSQL_PORT` | Porta (default: 3306) |
-| `DB_USER` | `MYSQL_USERNAME` | Usuário |
-| `DB_PASS` | `MYSQL_PASSWORD` | Senha |
-| `DB_NAME` | `MYSQL_DATABASE` | Nome do banco |
-| — | `DATABASE_URL` / `MYSQL_URL` | Connection string completa |
+| `DB_HOST` | `MYSQL_HOST` | Endereço do servidor MySQL |
+| `DB_PORT` | `MYSQL_PORT` | Porta de conexão (Padrão: 3306) |
+| `DB_USER` | `MYSQL_USERNAME` | Usuário de autenticação |
+| `DB_PASS` | `MYSQL_PASSWORD` | Senha de acesso |
+| `DB_NAME` | `MYSQL_DATABASE` | Nome do banco de dados |
+| — | `DATABASE_URL` | String de conexão completa |
 
-> 💡 Defina `DEBUG_DB_CONFIG=true` para logs de debug de conexão.
+> Nota: Defina `DEBUG_DB_CONFIG=true` para habilitar logs detalhados de conexão.
 
 ---
 
-## 🗄️ Arquitetura do Banco de Dados
+## Arquitetura de Dados
 
-O sistema utiliza **MySQL 8+** com charset `utf8mb4`. Schema em [`database/schema.sql`](database/schema.sql).
+O sistema utiliza **MySQL 8** com codificação `utf8mb4`. O esquema detalhado pode ser encontrado em [`database/schema.sql`](database/schema.sql).
 
-### 🔗 Diagrama de Relacionamentos
+### Diagrama de Entidade-Relacionamento
 
 ```mermaid
 erDiagram
@@ -130,193 +130,150 @@ erDiagram
 
 ---
 
-### 📋 Detalhamento das Tabelas
+### Dicionário de Dados
 
 <details>
-<summary>👤 <strong>usuarios</strong> — Autenticação centralizada</summary>
+<summary><strong>usuarios</strong> — Base de Autenticação</summary>
 
 | Coluna | Tipo | Descrição |
 |:-------|:-----|:----------|
-| `id` | `INT` PK | Identificador único auto-increment |
-| `nome` | `VARCHAR(100)` | Nome completo do usuário |
-| `email` | `VARCHAR(100)` 🔑 | E-mail único (usado como login) |
-| `senha` | `VARCHAR(255)` | Hash bcrypt da senha |
-| `perfil` | `ENUM` | 🔴 `admin` · 🟢 `profissional` · 🔵 `cliente` · 🟠 `recepcionista` |
+| `id` | `INT` PK | Identificador único |
+| `nome` | `VARCHAR(100)` | Nome completo |
+| `email` | `VARCHAR(100)` | Login do usuário (Único) |
+| `senha` | `VARCHAR(255)` | Hash criptográfico (Bcrypt) |
+| `perfil` | `ENUM` | `admin` · `profissional` · `cliente` · `recepcionista` |
 | `telefone` | `VARCHAR(20)` | Contato telefônico |
-| `ativo` | `BOOLEAN` | `true` = ativo no sistema |
+| `ativo` | `BOOLEAN` | Status da conta |
 
 </details>
 
 <details>
-<summary>🩺 <strong>profissionais</strong> — Corpo clínico</summary>
+<summary><strong>profissionais</strong> — Corpo Clínico</summary>
 
 | Coluna | Tipo | Descrição |
 |:-------|:-----|:----------|
-| `id` | `INT` PK | ID do profissional |
-| `usuario_id` | `INT` FK 🔑 | Vínculo único com `usuarios` |
-| `especialidade` | `VARCHAR(100)` | Ex: "Clínica Geral", "Psiquiatria" |
-| `descricao` | `TEXT` | Mini biografia / currículo |
-| `registro_profissional` | `VARCHAR(50)` | CRM / CRP / CREFITO |
+| `id` | `INT` PK | Identificador do profissional |
+| `usuario_id` | `INT` FK | Relacionamento com tabela usuarios |
+| `especialidade` | `VARCHAR(100)` | Área de atuação médica |
+| `descricao` | `TEXT` | Perfil profissional |
+| `registro_profissional` | `VARCHAR(50)` | CRM / CRP / Registro de classe |
 
 </details>
 
 <details>
-<summary>🧑‍🤝‍🧑 <strong>clientes</strong> — Pacientes</summary>
+<summary><strong>clientes</strong> — Cadastro de Pacientes</summary>
 
 | Coluna | Tipo | Descrição |
 |:-------|:-----|:----------|
-| `id` | `INT` PK | ID do paciente |
-| `usuario_id` | `INT` FK 🔑 | Vínculo único com `usuarios` |
+| `id` | `INT` PK | Identificador do paciente |
+| `usuario_id` | `INT` FK | Relacionamento com tabela usuarios |
 | `data_nascimento` | `DATE` | Data de nascimento |
-| `cpf` | `VARCHAR(14)` 🔑 | CPF formatado (único) |
-| `endereco` | `VARCHAR(255)` | Endereço completo |
+| `cpf` | `VARCHAR(14)` | Cadastro de Pessoa Física (Único) |
+| `endereco` | `VARCHAR(255)` | Endereço residencial |
 
 </details>
 
 <details>
-<summary>📦 <strong>servicos</strong> — Catálogo de procedimentos</summary>
+<summary><strong>servicos</strong> — Procedimentos Clínicos</summary>
 
 | Coluna | Tipo | Descrição |
 |:-------|:-----|:----------|
-| `id` | `INT` PK | ID do serviço |
-| `profissional_id` | `INT` FK | Médico responsável |
-| `nome` | `VARCHAR(100)` | Ex: "Consulta Geral", "Psicoterapia" |
-| `descricao` | `TEXT` | Detalhes do procedimento |
-| `duracao_minutos` | `INT` | Duração (default: 30min) |
-| `preco` | `DECIMAL(10,2)` | Valor em R$ |
+| `id` | `INT` PK | Identificador do serviço |
+| `profissional_id` | `INT` FK | Responsável técnico |
+| `nome` | `VARCHAR(100)` | Nome do procedimento |
+| `duracao_minutos` | `INT` | Tempo estimado (Padrão: 30) |
+| `preco` | `DECIMAL(10,2)` | Valor nominal |
 
 </details>
 
 <details>
-<summary>📅 <strong>agendamentos</strong> — Fila e controle de consultas</summary>
+<summary><strong>agendamentos</strong> — Gestão de Consultas</summary>
 
 | Coluna | Tipo | Descrição |
 |:-------|:-----|:----------|
-| `id` | `INT` PK | ID do agendamento |
-| `cliente_id` | `INT` FK | Paciente vinculado |
-| `profissional_id` | `INT` FK | Médico alocado |
-| `servico_id` | `INT` FK | Serviço escolhido |
-| `data_hora` | `DATETIME` | Data e hora exata da consulta |
-| `modalidade` | `ENUM` | 🏢 `presencial` · 📹 `teleconsulta` |
-| `link_telemedicina` | `VARCHAR(255)` | URL Zoom / Meet (se teleconsulta) |
-| `notificado` | `BOOLEAN` | Se lembrete automático foi enviado |
-| `status` | `ENUM` | Ciclo de vida (ver diagrama abaixo) |
-| `pagamento_status` | `ENUM` | 🔴 `pendente` · 🟢 `pago` |
-| `valor_consulta` | `DECIMAL(10,2)` | Valor cobrado |
-| `sala` | `VARCHAR(20)` | Sala física ou `"VIRTUAL"` |
-| `observacoes` | `TEXT` | Notas do paciente / recepção |
+| `id` | `INT` PK | Identificador do agendamento |
+| `cliente_id` | `INT` FK | Paciente |
+| `profissional_id` | `INT` FK | Profissional alocado |
+| `servico_id` | `INT` FK | Procedimento |
+| `data_hora` | `DATETIME` | Cronograma da consulta |
+| `modalidade` | `ENUM` | `presencial` · `teleconsulta` |
+| `link_telemedicina` | `VARCHAR(255)` | URL de acesso remoto |
+| `notificado` | `BOOLEAN` | Confirmação de envio de alerta |
+| `status` | `ENUM` | Ciclo operacional (Agendado, Confirmado, Concluído, etc.) |
+| `pagamento_status` | `ENUM` | `pendente` · `pago` |
+| `valor_consulta` | `DECIMAL(10,2)` | Valor faturado |
+| `sala` | `VARCHAR(20)` | Local físico ou virtual |
 
-#### 🔄 Ciclo de Vida do Agendamento
+#### Fluxo de Status do Agendamento
 
 ```mermaid
 stateDiagram-v2
     [*] --> Agendado
-    Agendado --> Confirmado : Paciente confirma
+    Agendado --> Confirmado : Confirmação do Paciente
     Agendado --> Cancelado : Cancelamento
-    Confirmado --> EmEspera : Check-in na recepção
+    Confirmado --> EmEspera : Check-in Realizado
     Confirmado --> Cancelado : Cancelamento
-    EmEspera --> EmAtendimento : Médico inicia
-    EmAtendimento --> Concluido : Finaliza consulta
+    EmEspera --> EmAtendimento : Início do Atendimento
+    EmAtendimento --> Concluido : Finalização Clínica
     Concluido --> [*]
     Cancelado --> [*]
 ```
 
 </details>
 
-<details>
-<summary>📝 <strong>prontuarios</strong> — Registro clínico digital</summary>
-
-| Coluna | Tipo | Descrição |
-|:-------|:-----|:----------|
-| `id` | `INT` PK | ID do prontuário |
-| `agendamento_id` | `INT` FK 🔑 | Vínculo 1:1 com agendamento |
-| `notas_clinicas` | `TEXT` | Anotações SOAP do médico |
-| `prescricoes` | `TEXT` | Receituário digital |
-| `exames` | `TEXT` | Solicitações de exames |
-
-</details>
-
-### ⚡ Índices de Performance
-
-| Índice | Tabela | Colunas | Finalidade |
-|:-------|:-------|:--------|:-----------|
-| `idx_agendamentos_data` | agendamentos | `data_hora` | Busca rápida por dia |
-| `idx_agendamentos_profissional` | agendamentos | `profissional_id, data_hora` | Agenda do médico |
-| `idx_agendamentos_cliente` | agendamentos | `cliente_id, data_hora` | Histórico do paciente |
-
-### 🔐 Regras de Integridade
-
-| Regra | Descrição |
-|:------|:----------|
-| 🗑️ **Cascade Delete** | Remover `usuario` → exclui automaticamente profissional/cliente/serviços/agendamentos/prontuários |
-| 🚫 **Anti-conflito (Profissional)** | API impede agendamentos sobrepostos para o mesmo médico |
-| 🚫 **Anti-conflito (Paciente)** | API impede que o paciente tenha 2 consultas simultâneas |
-| 🔒 **RBAC Centralizado** | O campo `perfil` controla rotas, menus e filtros de dados |
-| 🔑 **Unicidade** | E-mails e CPFs são garantidos como únicos no banco |
-
 ---
 
-## 🛣️ Endpoints da API
+## Documentação de Endpoints
 
-### 🔓 Públicos (sem autenticação)
+### Rotas Públicas (Acesso Aberto)
 
-| Método | Endpoint | Descrição |
+| Método | Endpoint | Função |
 |:------:|:---------|:----------|
-| `POST` | `/api/login` | 🔐 Autenticação e retorno do JWT |
-| `POST` | `/api/registro` | 📝 Registro de novo paciente |
-| `GET` | `/api/profissionais` | 🩺 Listar corpo clínico |
-| `GET` | `/api/servicos` | 📦 Listar serviços disponíveis |
-| `POST` | `/api/clientes` | 👤 Cadastro de cliente |
+| `POST` | `/api/login` | Autenticação e emissão de token JWT |
+| `POST` | `/api/registro` | Autopreenchimento de novo paciente |
+| `GET` | `/api/profissionais` | Consulta ao corpo clínico |
+| `GET` | `/api/servicos` | Listagem de procedimentos disponíveis |
 
-### 🔒 Protegidos (requer JWT)
+### Rotas Privadas (Requer Autenticação JWT)
 
-| Método | Endpoint | Acesso | Descrição |
+| Método | Endpoint | Nível de Acesso | Descrição |
 |:------:|:---------|:-------|:----------|
-| `POST` | `/api/profissionais` | 🔴 Admin | Cadastrar novo profissional |
-| `POST` | `/api/servicos` | 🔴🟢 Admin/Prof | Cadastrar serviço |
-| `GET` | `/api/clientes` | 🔴🟢🟠 Admin/Prof/Recepção | Listar clientes (filtrado por perfil) |
-| `GET` | `/api/clientes/meu-historico` | 🔵🟢🔴 Todos logados | Histórico de saúde |
-| `GET` | `/api/agendamentos` | 🔓 Todos logados | Listar agendamentos (filtrado) |
-| `GET` | `/api/agendamentos/disponibilidade` | 🔓 Todos logados | Horários ocupados do dia |
-| `POST` | `/api/agendamentos` | 🔵🟠🔴 Cliente/Recep/Admin | Criar agendamento *(com anti-conflito)* |
-| `PUT` | `/api/agendamentos/:id` | 🔓 Todos logados | Atualizar status/dados |
-| `DELETE` | `/api/agendamentos/:id` | 🔓 Todos logados | Cancelar (soft delete) |
-| `GET` | `/api/prontuarios/:agendamento_id` | 🟢🔴 Prof/Admin | Buscar prontuário |
-| `POST` | `/api/prontuarios/:agendamento_id` | 🟢🔴 Prof/Admin | Salvar prontuário |
+| `POST` | `/api/profissionais` | Admin | Inclusão de novo profissional |
+| `POST` | `/api/servicos` | Admin / Profissional | Cadastro de novos serviços |
+| `GET` | `/api/clientes` | Admin / Prof / Recepção | Gestão da base de pacientes |
+| `GET` | `/api/agendamentos` | Autenticado | Gestão de consultas (Filtrado por perfil) |
+| `POST` | `/api/agendamentos` | Cliente / Recepção / Admin | Criação de reserva (Validação de conflitos) |
+| `PUT` | `/api/agendamentos/:id` | Autenticado | Atualização de status operacional |
+| `GET` | `/api/prontuarios/:id` | Profissional / Admin | Acesso a dados clínicos |
+| `POST` | `/api/prontuarios/:id` | Profissional / Admin | Registro de evolução clínica |
 
 ---
 
-## 🛡️ Matriz de Controle de Acesso (RBAC)
+## Integridade e Segurança
 
-| Recurso | 🔴 Admin | 🟠 Recepção | 🟢 Profissional | 🔵 Cliente |
-|:--------|:--------:|:-----------:|:---------------:|:----------:|
-| Hub Operacional | ✅ | ✅ | ❌ | ❌ |
-| Agenda Global | ✅ | ✅ | ❌ | ❌ |
-| Agendar (por paciente) | ✅ | ✅ | ❌ | ❌ |
-| Cadastrar Paciente | ✅ | ✅ | ❌ | ❌ |
-| Painel Médico | ✅ | ❌ | ✅ | ❌ |
-| Sala de Atendimento | ✅ | ❌ | ✅ | ❌ |
-| Meus Pacientes | ❌ | ❌ | ✅ *(filtrado)* | ❌ |
-| Minhas Consultas | ❌ | ❌ | ✅ | ✅ |
-| Auto-agendamento | ❌ | ❌ | ❌ | ✅ |
-| Gerenciar Usuários | ✅ | ❌ | ❌ | ❌ |
+| Regra | Definição Técnica |
+|:------|:----------|
+| **Remoção em Cascata** | A exclusão de um usuário implica na remoção automatizada de seus registros dependentes. |
+| **Prevenção de Conflitos** | Algoritmo de validação de slots para evitar sobreposição de agendas. |
+| **Controle de Acesso (RBAC)** | Middleware de validação de escopo baseado no perfil do token JWT. |
+| **Unicidade de Dados** | Garantia de integridade para campos de e-mail e identificadores nacionais (CPF). |
 
 ---
 
-## 🧪 Credenciais de Teste
+## Credenciais de Referência (Ambiente de Teste)
 
-> Seed completo em [`database/seed.sql`](database/seed.sql) — Senha universal: **`123456`**
+Senha padrão para homologação: **`123456`**
 
-| Perfil | Nome | E-mail | Função |
-|:-------|:-----|:-------|:-------|
-| 🔴 Admin | Administrador Vita | `admin@clinica.com` | Visão total do sistema |
-| 🟢 Profissional | Dra. Ana Silva | `ana.silva@clinica.com` | Clínica Geral |
-| 🟢 Profissional | Dr. Roberto Santos | `roberto.santos@clinica.com` | Psiquiatria |
-| 🔵 Cliente | Maria Santos | `maria.santos@email.com` | Paciente de teste |
-| 🟠 Recepcionista | Patrícia Staff | `recepcao@clinica.com` | Triagem e agendamentos |
+| Perfil | Identificação | E-mail |
+|:-------|:-----|:-------|
+| Administrador | Administrador Vita | `admin@clinica.com` |
+| Médico | Dra. Ana Silva | `ana.silva@clinica.com` |
+| Médico | Dr. Roberto Santos | `roberto.santos@clinica.com` |
+| Paciente | Maria Santos | `maria.santos@email.com` |
+| Recepção | Patrícia Staff | `recepcao@clinica.com` |
 
 ---
 
 <p align="center">
-  <sub>Desenvolvido com 💚 para <strong>Clínica Vita</strong> — VitalHub Enterprise Platform</sub>
+  Desenvolvido para <strong>Clínica Vita</strong> — VitalHub Enterprise Platform
 </p>

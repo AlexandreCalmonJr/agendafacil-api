@@ -73,6 +73,10 @@ const buscarPorId = async (req, res) => {
       return res.status(404).json({ erro: 'Cliente não encontrado' });
     }
 
+    if (req.usuario.perfil === 'cliente' && rows[0].id !== req.usuario.cliente_id) {
+      return res.status(403).json({ erro: 'Acesso negado' });
+    }
+
     res.json(rows[0]);
   } catch (err) {
     console.error('Erro ao buscar cliente:', err);
@@ -128,12 +132,12 @@ const buscarHistoricoSaude = async (req, res) => {
   try {
     let targetClientId = req.usuario.cliente_id;
 
-    // Se o usuário for profissional ou admin, ele pode passar um cliente_id na query
-    if (['profissional', 'admin'].includes(req.usuario.perfil)) {
+    // Se o usuário for profissional, admin ou recepcionista, ele pode passar um cliente_id na query
+    if (['profissional', 'admin', 'recepcionista'].includes(req.usuario.perfil)) {
       if (req.query.cliente_id) {
         targetClientId = req.query.cliente_id;
-      } else if (req.usuario.perfil === 'profissional') {
-        return res.status(400).json({ erro: 'cliente_id é obrigatório para profissionais' });
+      } else if (['profissional', 'recepcionista'].includes(req.usuario.perfil)) {
+        return res.status(400).json({ erro: 'cliente_id é obrigatório para este perfil' });
       }
     }
 
@@ -150,9 +154,12 @@ const buscarHistoricoSaude = async (req, res) => {
         p.created_at,
         a.data_hora,
         up.nome as profissional_nome,
-        s.nome as servico_nome
+        s.nome as servico_nome,
+        uc.nome as cliente_nome
       FROM prontuarios p
       JOIN agendamentos a ON p.agendamento_id = a.id
+      JOIN clientes c ON a.cliente_id = c.id
+      JOIN usuarios uc ON c.usuario_id = uc.id
       JOIN profissionais prof ON a.profissional_id = prof.id
       JOIN usuarios up ON prof.usuario_id = up.id
       JOIN servicos s ON a.servico_id = s.id

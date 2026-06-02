@@ -1,9 +1,13 @@
 const pool = require('../config/database');
 
+const STATUS_VALIDOS = ['agendado', 'confirmado', 'em_espera', 'em_atendimento', 'concluido', 'cancelado'];
+
 // GET /api/agendamentos
 const listar = async (req, res) => {
   try {
-    const { data, profissional_id, cliente_id, status } = req.query;
+    const { data, profissional_id, cliente_id, status, pagina = 1, limite = 50 } = req.query;
+    const offset = (Math.max(1, parseInt(pagina)) - 1) * parseInt(limite);
+    const limit = Math.min(100, Math.max(1, parseInt(limite)));
 
     let query = `
       SELECT 
@@ -38,31 +42,30 @@ const listar = async (req, res) => {
     `;
     const params = [];
 
-    // Filtro por data (agenda do dia)
     if (data) {
       query += ' AND DATE(a.data_hora) = ?';
       params.push(data);
     }
 
-    // Filtro por profissional
     if (profissional_id) {
       query += ' AND a.profissional_id = ?';
       params.push(profissional_id);
     }
 
-    // Filtro por cliente
     if (cliente_id) {
       query += ' AND a.cliente_id = ?';
       params.push(cliente_id);
     }
 
-    // Filtro por status
     if (status) {
-      query += ' AND a.status = ?';
-      params.push(status);
+      const statusList = status.split(',');
+      const validStatuses = statusList.filter(s => STATUS_VALIDOS.includes(s.trim()));
+      if (validStatuses.length > 0) {
+        query += ` AND a.status IN (${validStatuses.map(() => '?').join(',')})`;
+        params.push(...validStatuses);
+      }
     }
 
-    // Filtrar por perfil do usuário logado
     if (req.usuario && req.usuario.perfil === 'cliente' && req.usuario.cliente_id) {
       query += ' AND a.cliente_id = ?';
       params.push(req.usuario.cliente_id);
@@ -70,12 +73,34 @@ const listar = async (req, res) => {
       query += ' AND a.profissional_id = ?';
       params.push(req.usuario.profissional_id);
     }
-    // Admin e Recepcionista não possuem filtro extra (vêem tudo)
 
-    query += ' ORDER BY a.data_hora ASC';
+    query += ' ORDER BY a.data_hora ASC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
 
     const [rows] = await pool.query(query, params);
-    res.json(rows);
+
+    let countQuery = `
+      SELECT COUNT(*) as total
+      FROM agendamentos a
+      JOIN clientes c ON a.cliente_id = c.id
+      JOIN profissionais p ON a.profissional_id = p.id
+      WHERE 1=1
+    `;
+    const countParams = [];
+    if (data) { countQuery += ' AND DATE(a.data_hora) = ?'; countParams.push(data); }
+    if (profissional_id) { countQuery += ' AND a.profissional_id = ?'; countParams.push(profissional_id); }
+    if (cliente_id) { countQuery += ' AND a.cliente_id = ?'; countParams.push(cliente_id); }
+    const [countResult] = await pool.query(countQuery, countParams);
+
+    res.json({
+      dados: rows,
+      paginacao: {
+        pagina: parseInt(pagina),
+        limite: limit,
+        total: countResult[0].total,
+        paginas: Math.ceil(countResult[0].total / limit)
+      }
+    });
   } catch (err) {
     console.error('Erro ao listar agendamentos:', err);
     res.status(500).json({ erro: 'Erro interno do servidor' });
@@ -119,7 +144,16 @@ const buscarPorId = async (req, res) => {
       return res.status(404).json({ erro: 'Agendamento não encontrado' });
     }
 
-    res.json(rows[0]);
+    const agendamento = rows[0];
+
+    if (req.usuario.perfil === 'cliente' && agendamento.cliente_id !== req.usuario.cliente_id) {
+      return res.status(403).json({ erro: 'Acesso negado' });
+    }
+    if (req.usuario.perfil === 'profissional' && agendamento.profissional_id !== req.usuario.profissional_id) {
+      return res.status(403).json({ erro: 'Acesso negado' });
+    }
+
+    res.json(agendamento);
   } catch (err) {
     console.error('Erro ao buscar agendamento:', err);
     res.status(500).json({ erro: 'Erro interno do servidor' });
@@ -128,16 +162,19 @@ const buscarPorId = async (req, res) => {
 
 // POST /api/agendamentos
 const criar = async (req, res) => {
+  const connection = await pool.getConnection();
   try {
+    await connection.beginTransaction();
+
     const { cliente_id, profissional_id, servico_id, data_hora, observacoes } = req.body;
 
     if (!cliente_id || !profissional_id || !servico_id || !data_hora) {
       return res.status(400).json({ erro: 'cliente_id, profissional_id, servico_id e data_hora são obrigatórios' });
     }
 
-    // Buscar duração do serviço
-    const [servico] = await pool.query('SELECT duracao_minutos FROM servicos WHERE id = ?', [servico_id]);
+    const [servico] = await connection.query('SELECT duracao_minutos FROM servicos WHERE id = ?', [servico_id]);
     if (servico.length === 0) {
+      await connection.rollback();
       return res.status(404).json({ erro: 'Serviço não encontrado' });
     }
 
@@ -145,10 +182,8 @@ const criar = async (req, res) => {
     const inicio = new Date(data_hora);
     const fim = new Date(inicio.getTime() + duracao * 60000);
 
-    // Verificar conflito de horário para o PROFISSIONAL
-    const [conflitoProf] = await pool.query(`
-      SELECT a.id, a.data_hora, s.duracao_minutos
-      FROM agendamentos a
+    const [conflitoProf] = await connection.query(`
+      SELECT a.id FROM agendamentos a
       JOIN servicos s ON a.servico_id = s.id
       WHERE a.profissional_id = ?
         AND a.status IN ('agendado', 'confirmado')
@@ -156,16 +191,16 @@ const criar = async (req, res) => {
           (a.data_hora < ? AND DATE_ADD(a.data_hora, INTERVAL s.duracao_minutos MINUTE) > ?)
           OR (a.data_hora >= ? AND a.data_hora < ?)
         )
+      FOR UPDATE
     `, [profissional_id, fim, inicio, inicio, fim]);
 
     if (conflitoProf.length > 0) {
+      await connection.rollback();
       return res.status(409).json({ erro: 'Conflito de horário: o profissional já possui um agendamento neste período.' });
     }
 
-    // Verificar conflito de horário para o CLIENTE (paciente)
-    const [conflitoCliente] = await pool.query(`
-      SELECT a.id, a.data_hora, s.duracao_minutos
-      FROM agendamentos a
+    const [conflitoCliente] = await connection.query(`
+      SELECT a.id FROM agendamentos a
       JOIN servicos s ON a.servico_id = s.id
       WHERE a.cliente_id = ?
         AND a.status IN ('agendado', 'confirmado')
@@ -173,24 +208,31 @@ const criar = async (req, res) => {
           (a.data_hora < ? AND DATE_ADD(a.data_hora, INTERVAL s.duracao_minutos MINUTE) > ?)
           OR (a.data_hora >= ? AND a.data_hora < ?)
         )
+      FOR UPDATE
     `, [cliente_id, fim, inicio, inicio, fim]);
 
     if (conflitoCliente.length > 0) {
+      await connection.rollback();
       return res.status(409).json({ erro: 'Conflito de horário: o paciente já possui uma consulta agendada neste período.' });
     }
 
-    const [result] = await pool.query(
+    const [result] = await connection.query(
       'INSERT INTO agendamentos (cliente_id, profissional_id, servico_id, data_hora, observacoes, link_telemedicina, modalidade) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [cliente_id, profissional_id, servico_id, data_hora, observacoes || null, req.body.link_telemedicina || null, req.body.modalidade || 'presencial']
     );
+
+    await connection.commit();
 
     res.status(201).json({
       mensagem: 'Agendamento criado com sucesso',
       id: result.insertId
     });
   } catch (err) {
+    await connection.rollback();
     console.error('Erro ao criar agendamento:', err);
     res.status(500).json({ erro: 'Erro interno do servidor' });
+  } finally {
+    connection.release();
   }
 };
 
@@ -200,10 +242,17 @@ const atualizar = async (req, res) => {
     const { id } = req.params;
     const { data_hora, status, observacoes } = req.body;
 
-    // Verificar se existe
     const [existente] = await pool.query('SELECT * FROM agendamentos WHERE id = ?', [id]);
     if (existente.length === 0) {
       return res.status(404).json({ erro: 'Agendamento não encontrado' });
+    }
+
+    const agendamento = existente[0];
+    if (req.usuario.perfil === 'cliente' && agendamento.cliente_id !== req.usuario.cliente_id) {
+      return res.status(403).json({ erro: 'Acesso negado' });
+    }
+    if (req.usuario.perfil === 'profissional' && agendamento.profissional_id !== req.usuario.profissional_id) {
+      return res.status(403).json({ erro: 'Acesso negado' });
     }
 
     const campos = [];
@@ -214,6 +263,9 @@ const atualizar = async (req, res) => {
       valores.push(data_hora);
     }
     if (status) {
+      if (!STATUS_VALIDOS.includes(status)) {
+        return res.status(400).json({ erro: `Status inválido. Valores aceitos: ${STATUS_VALIDOS.join(', ')}` });
+      }
       campos.push('status = ?');
       valores.push(status);
     }
@@ -261,7 +313,14 @@ const cancelar = async (req, res) => {
       return res.status(404).json({ erro: 'Agendamento não encontrado' });
     }
 
-    // Soft delete: muda status para cancelado
+    const agendamento = existente[0];
+    if (req.usuario.perfil === 'cliente' && agendamento.cliente_id !== req.usuario.cliente_id) {
+      return res.status(403).json({ erro: 'Acesso negado' });
+    }
+    if (req.usuario.perfil === 'profissional' && agendamento.profissional_id !== req.usuario.profissional_id) {
+      return res.status(403).json({ erro: 'Acesso negado' });
+    }
+
     await pool.query(
       'UPDATE agendamentos SET status = ? WHERE id = ?',
       ['cancelado', id]

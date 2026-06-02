@@ -75,6 +75,15 @@ const criar = async (req, res) => {
       return res.status(400).json({ erro: 'profissional_id, nome, duracao_minutos e preco são obrigatórios' });
     }
 
+    if (duracao_minutos <= 0 || preco < 0) {
+      return res.status(400).json({ erro: 'duração deve ser positiva e preço não pode ser negativo' });
+    }
+
+    const [profExiste] = await pool.query('SELECT id FROM profissionais WHERE id = ?', [profissional_id]);
+    if (profExiste.length === 0) {
+      return res.status(404).json({ erro: 'Profissional não encontrado' });
+    }
+
     const [result] = await pool.query(
       'INSERT INTO servicos (profissional_id, nome, descricao, duracao_minutos, preco) VALUES (?, ?, ?, ?, ?)',
       [profissional_id, nome, descricao || null, duracao_minutos, preco]
