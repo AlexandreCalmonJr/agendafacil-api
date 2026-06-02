@@ -1,6 +1,9 @@
 -- ============================================
 -- Clínica Vita - Seed de Dados (Versão Final Elite)
 -- ============================================
+-- ⚠️ ATENÇÃO: Senhas aqui são APENAS para desenvolvimento/teste.
+-- NUNCA use estas senhas em produção. Altere todas após o deploy.
+-- ============================================
 
 -- Limpar dados existentes (em ordem reversa de FK)
 DELETE FROM prontuarios;

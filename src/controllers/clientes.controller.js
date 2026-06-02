@@ -73,6 +73,10 @@ const buscarPorId = async (req, res) => {
       return res.status(404).json({ erro: 'Cliente não encontrado' });
     }
 
+    if (req.usuario.perfil === 'cliente' && rows[0].id !== req.usuario.cliente_id) {
+      return res.status(403).json({ erro: 'Acesso negado' });
+    }
+
     res.json(rows[0]);
   } catch (err) {
     console.error('Erro ao buscar cliente:', err);
