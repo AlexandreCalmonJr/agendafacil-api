@@ -43,6 +43,23 @@ describe('Auth Middleware', () => {
       expect(req.usuario.perfil).toBe('admin');
     });
 
+    it('deve priorizar o Authorization header quando o cookie estiver inválido', () => {
+      const token = jwt.sign(
+        { id: 1, nome: 'Test', email: 'test@test.com', perfil: 'admin' },
+        JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      req.cookies.token = 'cookie-invalido';
+      req.headers['authorization'] = `Bearer ${token}`;
+
+      verificarToken(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      expect(req.usuario).toBeDefined();
+      expect(req.usuario.perfil).toBe('admin');
+    });
+
     it('deve aceitar token válido via cookie', () => {
       const token = jwt.sign(
         { id: 1, nome: 'Test', email: 'test@test.com', perfil: 'cliente' },

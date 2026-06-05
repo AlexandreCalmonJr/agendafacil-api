@@ -7,22 +7,22 @@ if (!JWT_SECRET) {
   process.exit(1);
 }
 
+const extrairToken = (req) => {
+  const authHeader = req.headers['authorization'];
+  if (authHeader) {
+    return authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+  }
+
+  if (req.cookies && req.cookies.token) {
+    return req.cookies.token;
+  }
+
+  return null;
+};
+
 // Middleware para verificar token JWT
 const verificarToken = (req, res, next) => {
-  let token = null;
-
-  // Tentar ler do cookie httpOnly primeiro
-  if (req.cookies && req.cookies.token) {
-    token = req.cookies.token;
-  }
-
-  // Fallback para Authorization header
-  if (!token) {
-    const authHeader = req.headers['authorization'];
-    if (authHeader) {
-      token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
-    }
-  }
+  const token = extrairToken(req);
 
   if (!token) {
     return res.status(401).json({ erro: 'Token não fornecido' });
@@ -31,8 +31,27 @@ const verificarToken = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.usuario = decoded;
-    next();
+    return next();
   } catch (err) {
+    // Fallback para o cookie apenas se o header não for válido,
+    // evitando que um cookie antigo impeça um token válido enviado pelo cliente.
+    const cookieToken = req.cookies && req.cookies.token ? req.cookies.token : null;
+    const authToken = req.headers['authorization']
+      ? (req.headers['authorization'].startsWith('Bearer ') ? req.headers['authorization'].slice(7) : req.headers['authorization'])
+      : null;
+
+    const tokensParaTentar = [authToken, cookieToken].filter(Boolean);
+
+    for (const candidate of tokensParaTentar) {
+      try {
+        const decoded = jwt.verify(candidate, JWT_SECRET);
+        req.usuario = decoded;
+        return next();
+      } catch (candidateErr) {
+        // tenta o próximo token
+      }
+    }
+
     return res.status(401).json({ erro: 'Token inválido ou expirado' });
   }
 };
